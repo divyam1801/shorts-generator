@@ -52,7 +52,14 @@ def merge_peaks(segments: list[dict], top_n: int = 3) -> list[dict]:
     for group in groups:
         peak_seg = max(group, key=lambda s: s["value"])
         midpoint = (peak_seg["start_time"] + peak_seg["end_time"]) / 2
-        moments.append({"time": midpoint, "value": peak_seg["value"]})
+        clip_start = group[0]["start_time"]
+        clip_end = group[-1]["end_time"]
+        moments.append({
+            "time": midpoint,
+            "value": peak_seg["value"],
+            "clip_start": clip_start,
+            "clip_end": clip_end,
+        })
 
     moments.sort(key=lambda m: m["value"], reverse=True)
     return moments[:top_n]
@@ -88,8 +95,11 @@ def main() -> None:
     for i, moment in enumerate(moments, 1):
         ts = format_timestamp(moment["time"])
         t_param = int(moment["time"])
+        clip_start = format_timestamp(moment["clip_start"])
+        clip_end = format_timestamp(moment["clip_end"])
+        duration = moment["clip_end"] - moment["clip_start"]
         link = f"https://www.youtube.com/watch?v={video_id}&t={t_param}s"
-        print(f"#{i}  {ts:<8} heat {moment['value']:.2f}   {link}")
+        print(f"#{i}  {ts:<8} heat {moment['value']:.2f}   clip {clip_start} → {clip_end} ({duration:.0f}s)   {link}")
 
 
 if __name__ == "__main__":
